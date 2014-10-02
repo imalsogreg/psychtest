@@ -19,7 +19,7 @@ library
   exposed-modules:     PsychTest, PsychTest.DualNBack, PsychTest.ReactionTime
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.7 && <4.8, text, time, transformers, vector
+  build-depends:       base >=4.7 && <4.8, text, time, transformers, mtl, vector
   hs-source-dirs:      src
   default-language:    Haskell2010
 

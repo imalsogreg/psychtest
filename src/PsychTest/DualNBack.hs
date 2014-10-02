@@ -39,17 +39,17 @@ instance Test DualNBackTest where
   type StateType   DualNBackTest = TrialState
   type ParamsType  DualNBackTest = Params
   type ResultsType DualNBackTest = Results
-  genTrial = undefined
-  runTest =  undefined
 
 newtype Results = Results (Sum Int)
                 deriving (Monoid)
 
 mkTrial = undefined
 
+{-
 trials :: Trial Results
 trials = do
   welcomeScreen `awaiting` Click
+-}
 
 data Trial r = Trial { runTrial :: IO r }
 
