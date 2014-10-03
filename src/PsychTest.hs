@@ -88,16 +88,17 @@ newtype TestResults s a = TestResults { runResults :: [(s,a)] }
 instance Functor (TestResults s) where
   fmap f (TestResults rs) = TestResults (fmap (\(x,y) -> (x, f y)) rs)
 
+runTrials :: Monad m => p -> s -> [Trial p s m (Maybe a)] -> m (TestResults s a)
+runTrials = undefined
 
+  
 ------------------------------------------------------------------------------
 class Test t where
   type ParamsType  t
   type StateType   t
   type ResultsType t
   initialState :: StateType t
-  runTest ::
-    Monad m => [Trial (ParamsType t) (StateType t) m (Maybe (ResultsType t))]
-            -> m (TestResults (StateType t) (ResultsType t))
+
 
 
 
