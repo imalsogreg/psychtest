@@ -15,7 +15,8 @@ import Control.Monad.IO.Class
 import Control.Monad.RWS.Class
 import Control.Monad.RWS.Strict
 import Control.Monad.Trans.State
-import Control.Monad.Trans.Writer
+
+import Data.Maybe
 import Data.Monoid
 import Data.Text
 
@@ -54,35 +55,29 @@ newtype TestResults s a = TestResults { runResults :: [(s,a)] }
 
 -}
 
-{- -- Try2. So close! Except that I couldn't implement mzero for Trial,
-   -- because where do I get the initial state? And I have no a to give
-   -- to 'return'
-newtype Trial p s m a = Trial { runTrial :: Monad m => RWST p (TestResults s a) s m a }
+
+newtype Trial p s m a = Trial { runTrial :: Monad m => RWST p () s m (Maybe a) }
 
 instance Monad m => Functor (Trial p s m) where
   fmap f ma = Trial (RWST (\p0 s0 -> do
-                              (a, s, w) <- runRWST (runTrial ma) p0 s0
-                              return (f a, s, TestResults [(s,f a)])))
+                              (a, s, ()) <- runRWST (runTrial ma) p0 s0
+                              return (fmap f a, s, ())))
 
 instance Monad m => Applicative (Trial p s m) where
-  pure a    = Trial ( RWST (\_ s -> return (a, s, TestResults [(s,a)])))
---  (Trial f')  <*> (Trial a') = let toF = runRWST f'
---                                   toA = runRWST a'
+  pure a    = Trial ( RWST (\_ s -> return (Just a, s, ())))
+  (Trial f')  <*> (Trial a') = Trial $ RWST (\p0 s0 -> do
+                                                (f'',_ ,()) <- runRWST f' p0 s0
+                                                (a'',sa,()) <- runRWST a' p0 s0
+                                                return (f'' <*> a'', sa, ()))
 
 instance (Monad m) => Monad (Trial p s m) where
   return           = pure
-  a'@(Trial a) >>= f = Trial $ RWST (\p0 s0 -> do
-                                      (a'',s, _) <- runRWST a p0 s0
-                                      let (Trial b) = f a''
-                                      runRWST b p0 s
-                                    )
-
-instance (Monad m) => MonadPlus (Trial p s m) where
-  mzero                     = return (Nothing, s0, [])
-  mplus (Trial a) (Trial b) = Trial $ RWST (\p0 s0 -> do
-                                               (a'',s ,w ) <- runRWST a p0 s0
-                                               (b'',s',w') <- runRWST b p0 s
-                                               return (b'', s', w <> TestResults [(s',b'')]))
+  (Trial a) >>= f = Trial $ RWST (\p0 s0 -> do
+                                     (a'',s, ()) <- runRWST a p0 s0
+                                     case fmap f a'' of
+                                       Just (Trial b) -> runRWST b p0 s
+                                       Nothing -> return (Nothing,s,())
+                                 )
 
 
 
@@ -92,15 +87,17 @@ newtype TestResults s a = TestResults { runResults :: [(s,a)] }
 
 instance Functor (TestResults s) where
   fmap f (TestResults rs) = TestResults (fmap (\(x,y) -> (x, f y)) rs)
--}
 
 
-
-
+------------------------------------------------------------------------------
 class Test t where
   type ParamsType  t
   type StateType   t
   type ResultsType t
+  initialState :: StateType t
+  runTest ::
+    Monad m => [Trial (ParamsType t) (StateType t) m (Maybe (ResultsType t))]
+            -> m (TestResults (StateType t) (ResultsType t))
 
 
 
