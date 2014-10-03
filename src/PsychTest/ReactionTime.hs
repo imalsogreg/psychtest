@@ -18,7 +18,7 @@ data State        = State  { trialInd     :: Int    }
 reactionTest = do
   welcome
   replicate 10 reactionTrial
--}
+
 
 runTrial :: Trial Params State IO Result
 runTrial = do
@@ -33,4 +33,4 @@ runTrial = do
     return . realToFrac $ diffUTCTime tNow t0
   return $ Result dt
   
-  
+-}  
