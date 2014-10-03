@@ -79,17 +79,21 @@ instance (Monad m) => Monad (Trial p s m) where
                                        Nothing -> return (Nothing,s,())
                                  )
 
-
-
 newtype TestResults s a = TestResults { runResults :: [(s,a)] }
                         deriving (Monoid)
-
 
 instance Functor (TestResults s) where
   fmap f (TestResults rs) = TestResults (fmap (\(x,y) -> (x, f y)) rs)
 
-runTrials :: Monad m => p -> s -> [Trial p s m (Maybe a)] -> m (TestResults s a)
-runTrials = undefined
+runTrials :: Monad m => p -> s -> [Trial p s m a] -> m (TestResults s a)
+runTrials p s trials = foldM f (s, TestResults []) trials >>= return . snd
+  where f (foldS,  res) (Trial t) = do
+           (r', s', ()) <- runRWST t p foldS
+           case r' of
+             Nothing -> return (s', res)
+             Just r  -> return (s', res <> TestResults [(s,r)])
+
+
 
   
 ------------------------------------------------------------------------------
