@@ -54,6 +54,9 @@ newtype TestResults s a = TestResults { runResults :: [(s,a)] }
 
 -}
 
+{- -- Try2. So close! Except that I couldn't implement mzero for Trial,
+   -- because where do I get the initial state? And I have no a to give
+   -- to 'return'
 newtype Trial p s m a = Trial { runTrial :: Monad m => RWST p (TestResults s a) s m a }
 
 instance Monad m => Functor (Trial p s m) where
@@ -75,11 +78,13 @@ instance (Monad m) => Monad (Trial p s m) where
                                     )
 
 instance (Monad m) => MonadPlus (Trial p s m) where
-  mzero                     = undefined
+  mzero                     = return (Nothing, s0, [])
   mplus (Trial a) (Trial b) = Trial $ RWST (\p0 s0 -> do
                                                (a'',s ,w ) <- runRWST a p0 s0
                                                (b'',s',w') <- runRWST b p0 s
                                                return (b'', s', w <> TestResults [(s',b'')]))
+
+
 
 newtype TestResults s a = TestResults { runResults :: [(s,a)] }
                         deriving (Monoid)
@@ -87,6 +92,10 @@ newtype TestResults s a = TestResults { runResults :: [(s,a)] }
 
 instance Functor (TestResults s) where
   fmap f (TestResults rs) = TestResults (fmap (\(x,y) -> (x, f y)) rs)
+-}
+
+
+
 
 class Test t where
   type ParamsType  t
