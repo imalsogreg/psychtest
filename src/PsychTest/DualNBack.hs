@@ -39,6 +39,7 @@ instance Test DualNBackTest where
   type StateType   DualNBackTest = TrialState
   type ParamsType  DualNBackTest = Params
   type ResultsType DualNBackTest = Results
+  initialState = WaitingHello
 
 newtype Results = Results (Sum Int)
                 deriving (Monoid)
